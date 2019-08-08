@@ -1,4 +1,11 @@
-import {Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
+import {Entity, PrimaryGeneratedColumn, Column, JoinColumn} from 'typeorm';
+import {ProductTranslation} from './ProductTranslation';
+
+enum availability {
+    in_stock,
+    on_order,
+    not_available,
+}
 
 @Entity()
 export class Product {
@@ -6,9 +13,15 @@ export class Product {
     @PrimaryGeneratedColumn()
     ID: number;
 
-    @Column()
-    PRICE: string;
+    @Column({type: 'money'})
+    PRICE: number;
 
-    @Column()
-    CONDITION: string;
+    @Column('enum', {enum: availability})
+    AVAILABILITY: string;
+
+    @JoinColumn({
+        name: 'TRANSLATION_ID',
+        referencedColumnName: 'ID',
+    })
+    TRANSLATION: ProductTranslation;
 }
