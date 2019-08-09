@@ -1,13 +1,10 @@
 import {Entity, PrimaryGeneratedColumn, Column} from 'typeorm';
 
-@Entity()
-export class ProductTranslation {
+@Entity('translation_products')
+export class TranslationProduct {
 
   @PrimaryGeneratedColumn()
   ID: number;
-
-  @Column()
-  PRODUCT_ID: string;
 
   @Column()
   LANG_CZ: string;

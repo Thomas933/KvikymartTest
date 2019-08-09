@@ -1,12 +1,12 @@
 {
    "type": "postgres",
-   "host": "localhost",
+   "host": "127.0.0.1",
    "port": 5432,
-   "username": "root",
+   "username": "postgres",
    "password": "root",
    "database": "warehouse",
-   "synchronize": true,
-   "logging": false,
+   "synchronize": false,
+   "logging": true,
    "entities": [
       "src/entity/**/*.ts"
    ],

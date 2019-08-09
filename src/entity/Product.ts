@@ -1,5 +1,5 @@
-import {Entity, PrimaryGeneratedColumn, Column, JoinColumn} from 'typeorm';
-import {ProductTranslation} from './ProductTranslation';
+import {Entity, PrimaryGeneratedColumn, Column, JoinColumn, } from 'typeorm';
+import {TranslationProduct} from './TranslationPorduct';
 
 enum availability {
     in_stock,
@@ -7,7 +7,7 @@ enum availability {
     not_available,
 }
 
-@Entity()
+@Entity('products')
 export class Product {
 
     @PrimaryGeneratedColumn()
@@ -19,9 +19,12 @@ export class Product {
     @Column('enum', {enum: availability})
     AVAILABILITY: string;
 
+    @Column()
+    TRANSLATION_ID: number;
+
     @JoinColumn({
         name: 'TRANSLATION_ID',
         referencedColumnName: 'ID',
     })
-    TRANSLATION: ProductTranslation;
+    TRANSLATION: TranslationProduct;
 }
