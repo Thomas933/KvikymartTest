@@ -3,6 +3,33 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
+type Mutation {
+  createProduct(input: ProductInput!): Product!
+}
+
+type Product {
+  ID: Int!
+  PRICE: Float!
+  AVAILABILITY: String!
+  TRANSLATION: [Translation!]!
+}
+
+input ProductInput {
+  AVAILABILITY: String!
+  PRICE: Float!
+  LANG: String!
+  NAME: String!
+}
+
 type Query {
-  hello: String!
+  products: [Product!]!
+  product(id: Float!): [Product!]!
+}
+
+type Translation {
+  ID: Int!
+  PRODUCT_ID: Int!
+  LANG: String!
+  NAME: String!
+  PRODUCT: Product!
 }

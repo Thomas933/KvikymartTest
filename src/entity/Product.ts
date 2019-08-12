@@ -1,30 +1,33 @@
-import {Entity, PrimaryGeneratedColumn, Column, JoinColumn, } from 'typeorm';
-import {TranslationProduct} from './TranslationPorduct';
+import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToMany } from 'typeorm';
+import { Translation } from './Translation';
+import { Field, ObjectType, Float, Int } from 'type-graphql';
 
 enum availability {
-    in_stock,
-    on_order,
-    not_available,
+  in_stock,
+  on_order,
+  not_available,
 }
 
 @Entity('products')
+@ObjectType()
 export class Product {
+  @Field(type => Int)
+  @PrimaryGeneratedColumn()
+  readonly ID: number;
 
-    @PrimaryGeneratedColumn()
-    ID: number;
+  @Field(type => Float)
+  @Column({ type: 'decimal' })
+  PRICE: number;
 
-    @Column({type: 'money'})
-    PRICE: number;
+  @Field(type => String)
+  @Column('enum', { enum: availability })
+  AVAILABILITY: string;
 
-    @Column('enum', {enum: availability})
-    AVAILABILITY: string;
-
-    @Column()
-    TRANSLATION_ID: number;
-
-    @JoinColumn({
-        name: 'TRANSLATION_ID',
-        referencedColumnName: 'ID',
-    })
-    TRANSLATION: TranslationProduct;
+  @Field(type => Translation)
+  @OneToMany(type => Translation, translation => translation.PRODUCT)
+  @JoinColumn({
+    name: 'ID',
+    referencedColumnName: 'PRODUCT_ID',
+  })
+  TRANSLATION: Translation[];
 }
