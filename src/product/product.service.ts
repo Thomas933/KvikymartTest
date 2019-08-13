@@ -20,19 +20,25 @@ export class ProductService {
     ),
   ) {}
 
-  async getProducts(): Promise<Product[]> {
-    return this.productRepository
+  async getProducts(lang: string | null): Promise<Product[]> {
+    const query = this.productRepository
       .createQueryBuilder('product')
-      .leftJoinAndSelect('product.TRANSLATIONS', 'translations')
-      .getMany();
+      .leftJoinAndSelect('product.TRANSLATIONS', 'translations');
+    if (lang) {
+      query.where('translations.LANG = :lang', {lang});
+    }
+    return query.getMany();
   }
 
-  async getProduct(id: number): Promise<Product> {
-    return this.productRepository
+  async getProduct(id: number, lang: string | null): Promise<Product> {
+    const query = this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.TRANSLATIONS', 'translations')
-      .where('product.ID = :id', { id })
-      .getOne();
+      .where('product.ID = :id', { id });
+    if (lang) {
+      query.andWhere('translations.LANG = :lang', {lang});
+    }
+    return query.getOne();
   }
 
   async createProduct(productInput: any): Promise<ProductOutput> {
@@ -62,7 +68,7 @@ export class ProductService {
   }
 
   async updateProduct(receivedProduct: any): Promise<any | Product> {
-    const product = await this.getProduct(receivedProduct.ID);
+    const product = await this.getProduct(receivedProduct.ID, null);
     if (product instanceof Product) {
       const updatedProduct = this.generateEditProduct(receivedProduct, product);
       await this.connectionManager.transaction(
@@ -78,7 +84,7 @@ export class ProductService {
 
   async deleteProduct(id: number): Promise<boolean> {
     try {
-      const product = await this.getProduct(id);
+      const product = await this.getProduct(id, null);
       if (product instanceof Product) {
         await this.connectionManager.transaction(
           async transactionalEntityManager => {

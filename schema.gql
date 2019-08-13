@@ -58,8 +58,8 @@ input ProductTranslationInput {
 }
 
 type Query {
-  products: [Product!]!
-  product(id: Float!): Product!
+  products(lang: String!): [Product!]!
+  product(lang: String!, id: Float!): Product!
   deleteProduct(id: Float!): Boolean!
 }
 

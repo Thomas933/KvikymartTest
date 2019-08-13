@@ -5,24 +5,25 @@ import { ProductService } from './product.service';
 import { ProductInput } from './product.input';
 import { ProductOutput } from './product.output';
 import { ProductEditInput } from './product-edit.input';
+import { Lang } from '../productTranslation/productTrasnlation.input';
 
 @Resolver('Product')
 export class ProductResolver {
   constructor(private productService: ProductService) {}
 
   @Query(returns => [Product])
-  async products() {
+  async products(@Args('lang') lang: Lang) {
     try {
-      return this.productService.getProducts();
+      return this.productService.getProducts(lang);
     } catch (e) {
       winston.error(e.message);
     }
   }
 
   @Query(returns => Product)
-  async product(@Args('id') id: number) {
+  async product(@Args('id') id: number, @Args('lang') lang: Lang) {
     try {
-      return this.productService.getProduct(id);
+      return this.productService.getProduct(id, lang);
     } catch (e) {
       winston.error(e.message);
     }
