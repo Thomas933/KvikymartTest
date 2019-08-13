@@ -43,22 +43,23 @@ export class ProductService {
 
   async createProduct(productInput: any): Promise<ProductOutput> {
     const newProduct = new Product();
+    const createdProduct = new ProductOutput();
     newProduct.PRICE = productInput.PRICE;
     newProduct.AVAILABILITY = productInput.AVAILABILITY;
-    const createdProduct = new ProductOutput();
-    createdProduct.ID = newProduct.ID;
-    createdProduct.PRICE = newProduct.PRICE;
-
     await this.connectionManager.transaction(
       async transactionalEntityManager => {
         await transactionalEntityManager.save(newProduct);
-        await Promise.all(
-          productInput.TRANSLATIONS.map(async translation => {
+        createdProduct.ID = newProduct.ID;
+        createdProduct.PRICE = newProduct.PRICE;
+        createdProduct.AVAILABILITY = newProduct.AVAILABILITY;
+        createdProduct.TRANSLATIONS = [];
+        await Promise.all(productInput.TRANSLATIONS.map(async translation => {
             const newTranslation = new Translation();
             newTranslation.PRODUCT_ID = newProduct.ID;
             newTranslation.NAME = translation.NAME;
             newTranslation.LANG = translation.LANG;
             await transactionalEntityManager.save(newTranslation);
+            createdProduct.TRANSLATIONS.push(newTranslation);
             return newTranslation;
           }),
         );
