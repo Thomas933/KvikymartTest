@@ -3,27 +3,64 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
+enum Availability {
+  in_stock
+  on_order
+  not_available
+}
+
+enum Lang {
+  cs
+  en
+}
+
 type Mutation {
-  createProduct(input: ProductInput!): Product!
+  createProduct(inputProduct: ProductInput!): ProductOutput!
+  updateProduct(input: ProductEditInput!): Product!
 }
 
 type Product {
   ID: Int!
   PRICE: Float!
   AVAILABILITY: String!
-  TRANSLATION: [Translation!]!
+  TRANSLATIONS: [Translation!]!
+}
+
+input ProductEditInput {
+  ID: Int!
+  TRANSLATIONS: [ProductTranslationEditInput!] = []
+  AVAILABILITY: Availability
+  PRICE: Float
 }
 
 input ProductInput {
+  TRANSLATIONS: [ProductTranslationInput!] = []
+  AVAILABILITY: Availability!
+  PRICE: Float!
+}
+
+type ProductOutput {
+  ID: Int!
+  TRANSLATIONS: [Translation!]!
   AVAILABILITY: String!
   PRICE: Float!
-  LANG: String!
+}
+
+input ProductTranslationEditInput {
+  ID: Int!
+  LANG: Lang
+  NAME: String
+}
+
+input ProductTranslationInput {
+  LANG: Lang!
   NAME: String!
 }
 
 type Query {
   products: [Product!]!
-  product(id: Float!): [Product!]!
+  product(id: Float!): Product!
+  deleteProduct(id: Float!): Boolean!
 }
 
 type Translation {

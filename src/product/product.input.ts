@@ -1,26 +1,22 @@
-import { InputType, Field, Float } from 'type-graphql';
+import { InputType, Field, Float, registerEnumType  } from 'type-graphql';
+import { ProductTranslationInput  } from '../productTranslation/productTrasnlation.input';
 
-@InputType()
+export enum Availability {
+  in_stock = 'in_stock',
+  on_order = 'on_order',
+  not_available = 'not_available',
+}
+
+registerEnumType(Availability, {
+  name: 'Availability',
+});
+
+@InputType('ProductInput')
 export class ProductInput {
-  @Field(type => String)
-  AVAILABILITY: string;
+  @Field(type => [ProductTranslationInput] )
+  TRANSLATIONS = [ProductTranslationInput];
+  @Field(type => Availability)
+  AVAILABILITY: Availability;
   @Field(type => Float)
   PRICE: number;
-  @Field(type => String)
-  LANG: string;
-  @Field(type => String)
-  NAME: string;
-
-  // TODO: add array of translations
-}
-
-enum Direction {
-  in_stock,
-  on_order,
-  not_available,
-}
-
-enum lang {
-  cs,
-  en,
 }

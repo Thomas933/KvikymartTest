@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import * as winston from 'winston';
 import { InjectRepository, InjectEntityManager } from '@nestjs/typeorm';
 import { Repository, getConnectionManager } from 'typeorm';
 import { Product } from '../entity/Product';
-import { ProductInput } from './product.input';
 import { Translation } from '../entity/Translation';
 import { DEFAULT_CONNECTION_NAME } from '@nestjs/typeorm/dist/typeorm.constants';
 import { ProductOutput } from './product.output';
@@ -15,49 +15,109 @@ export class ProductService {
     @InjectRepository(Translation)
     private readonly translationRepository: Repository<Translation>,
     @InjectEntityManager()
-    private connectionManager = getConnectionManager().get(DEFAULT_CONNECTION_NAME),
+    private connectionManager = getConnectionManager().get(
+      DEFAULT_CONNECTION_NAME,
+    ),
   ) {}
-  async getAll(): Promise<Product[]> {
+
+  async getProducts(): Promise<Product[]> {
     return this.productRepository
       .createQueryBuilder('product')
-      .leftJoinAndSelect('product.TRANSLATION', 'translation')
+      .leftJoinAndSelect('product.TRANSLATIONS', 'translations')
       .getMany();
   }
 
-  async get(id: number): Promise<Product> {
+  async getProduct(id: number): Promise<Product> {
     return this.productRepository
       .createQueryBuilder('product')
-      .leftJoinAndSelect('product.TRANSLATION', 'translation')
+      .leftJoinAndSelect('product.TRANSLATIONS', 'translations')
       .where('product.ID = :id', { id })
       .getOne();
   }
 
-  async create(product: ProductInput): Promise<ProductOutput> {
+  async createProduct(productInput: any): Promise<ProductOutput> {
     const newProduct = new Product();
-    const newTranslation = new Translation();
-    newProduct.PRICE = product.PRICE;
-    newProduct.AVAILABILITY = product.AVAILABILITY;
-    newTranslation.LANG = product.LANG;
-    newTranslation.NAME = product.NAME;
-    await this.connectionManager.transaction( async transactionalEntityManager => {
-      await transactionalEntityManager.save(newProduct) ;
-      newTranslation.PRODUCT_ID = newProduct.ID;
-      await transactionalEntityManager.save(newTranslation);
-    });
+    newProduct.PRICE = productInput.PRICE;
+    newProduct.AVAILABILITY = productInput.AVAILABILITY;
     const createdProduct = new ProductOutput();
     createdProduct.ID = newProduct.ID;
-    createdProduct.AVAILABILITY = newProduct.AVAILABILITY;
     createdProduct.PRICE = newProduct.PRICE;
-    // TODO: add array of translations
+
+    await this.connectionManager.transaction(
+      async transactionalEntityManager => {
+        await transactionalEntityManager.save(newProduct);
+        await Promise.all(
+          productInput.TRANSLATIONS.map(async translation => {
+            const newTranslation = new Translation();
+            newTranslation.PRODUCT_ID = newProduct.ID;
+            newTranslation.NAME = translation.NAME;
+            newTranslation.LANG = translation.LANG;
+            await transactionalEntityManager.save(newTranslation);
+            return newTranslation;
+          }),
+        );
+      },
+    );
     return createdProduct;
   }
 
-  async update(receivedProduct: ProductInput): Promise<void> {
-    // const product = await this.get(receivedProduct.ID)
-    // await this.productRepository.save(product); // TODO: finish update product
+  async updateProduct(receivedProduct: any): Promise<any | Product> {
+    const product = await this.getProduct(receivedProduct.ID);
+    if (product instanceof Product) {
+      const updatedProduct = this.generateEditProduct(receivedProduct, product);
+      await this.connectionManager.transaction(
+        async transactionalEntityManager => {
+          await transactionalEntityManager.save(updatedProduct);
+        },
+      );
+      return updatedProduct;
+    }
+    winston.error(`Couldn't edit product wid id ${receivedProduct.ID}`);
+    return null;
   }
 
-  async delete(id: number): Promise<void> {
-    await this.productRepository.delete({ ID: id });
+  async deleteProduct(id: number): Promise<boolean> {
+    try {
+      const product = await this.getProduct(id);
+      if (product instanceof Product) {
+        await this.connectionManager.transaction(
+          async transactionalEntityManager => {
+            await transactionalEntityManager
+              .createQueryBuilder()
+              .delete()
+              .from(Translation)
+              .where('PRODUCT_ID = :id', { id })
+              .execute();
+            await transactionalEntityManager
+              .createQueryBuilder()
+              .delete()
+              .from(Product)
+              .where('ID = :id', { id })
+              .execute();
+          },
+        );
+        return true;
+      }
+    } catch (e) {
+      winston.error(e.message);
+      return false;
+    }
+    return false;
+  }
+
+  private generateEditProduct(receivedProduct: any, product: Product): Product {
+    const newProduct = product;
+    newProduct.PRICE = receivedProduct.PRICE || newProduct.PRICE;
+    newProduct.AVAILABILITY =
+      receivedProduct.AVAILABILITY || newProduct.AVAILABILITY;
+    newProduct.TRANSLATIONS.map(translation => {
+      receivedProduct.TRANSLATIONS.find(updatedTranslation => {
+        if (updatedTranslation.ID === translation.ID) {
+          translation.LANG = updatedTranslation.LANG || translation.LANG;
+          translation.NAME = updatedTranslation.NAME || translation.NAME;
+        }
+      });
+    });
+    return newProduct;
   }
 }

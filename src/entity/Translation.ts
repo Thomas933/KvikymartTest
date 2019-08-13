@@ -8,7 +8,7 @@ import {
 import { ObjectType, Field, Int } from 'type-graphql';
 import { Product } from './Product';
 
-enum lang {
+enum Lang {
   cs,
   en,
 }
@@ -25,7 +25,7 @@ export class Translation {
   PRODUCT_ID: number;
 
   @Field(type => String)
-  @Column('enum', { enum: lang })
+  @Column('enum', { enum: Lang })
   LANG: string;
 
   @Field(type => String)
@@ -33,7 +33,7 @@ export class Translation {
   NAME: string;
 
   @Field(type => Product)
-  @ManyToOne(type => Product, product => product.TRANSLATION, {
+  @ManyToOne(type => Product, product => product.TRANSLATIONS, {
     cascade: true,
   })
   @JoinColumn({

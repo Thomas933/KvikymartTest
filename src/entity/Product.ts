@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToMany } from 't
 import { Translation } from './Translation';
 import { Field, ObjectType, Float, Int } from 'type-graphql';
 
-enum availability {
+enum Availability {
   in_stock,
   on_order,
   not_available,
@@ -20,7 +20,7 @@ export class Product {
   PRICE: number;
 
   @Field(type => String)
-  @Column('enum', { enum: availability })
+  @Column('enum', { enum: Availability })
   AVAILABILITY: string;
 
   @Field(type => Translation)
@@ -29,5 +29,5 @@ export class Product {
     name: 'ID',
     referencedColumnName: 'PRODUCT_ID',
   })
-  TRANSLATION: Translation[];
+  TRANSLATIONS: Translation[];
 }
