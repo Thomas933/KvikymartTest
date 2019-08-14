@@ -40,7 +40,11 @@ export class ProductResolver {
 
   @Mutation(returns => ProductOutput)
   async createProduct(@Args('inputProduct') inputProduct: ProductInput) {
+    try {
     return this.productService.createProduct(inputProduct);
+    } catch (e) {
+      winston.error(e.message);
+    }
   }
 
   @Mutation(returns => Product)
