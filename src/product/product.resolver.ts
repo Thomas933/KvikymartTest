@@ -2,7 +2,7 @@ import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
 import * as winston from 'winston';
 import { Product } from '../entity/Product';
 import { ProductService } from './product.service';
-import { ProductInput } from './product.input';
+import { ProductInput, Availability } from './product.input';
 import { ProductOutput } from './product.output';
 import { ProductEditInput } from './product-edit.input';
 import { Lang } from '../productTranslation/productTrasnlation.input';
@@ -12,9 +12,9 @@ export class ProductResolver {
   constructor(private productService: ProductService) {}
 
   @Query(returns => [Product])
-  async products(@Args('lang') lang: Lang) {
+  async products(@Args('lang') lang: Lang, @Args('availability') availability: Availability) {
     try {
-      return this.productService.getProducts(lang);
+      return this.productService.getProducts(lang, availability);
     } catch (e) {
       winston.error(e.message);
     }

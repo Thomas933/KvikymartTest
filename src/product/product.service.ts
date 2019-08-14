@@ -20,12 +20,15 @@ export class ProductService {
     ),
   ) {}
 
-  async getProducts(lang: string | null): Promise<Product[]> {
+  async getProducts(lang: string | null, availability: string | null): Promise<Product[]> {
     const query = this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.TRANSLATIONS', 'translations');
     if (lang) {
       query.where('translations.LANG = :lang', {lang});
+    }
+    if (availability) {
+      query.andWhere('product.AVAILABILITY = :availability', {availability});
     }
     return query.getMany();
   }
